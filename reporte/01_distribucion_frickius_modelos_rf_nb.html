@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Modelo de Distribución de Especie</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/clipboard/clipboard.min.js"></script>
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/quarto-html/quarto.js"></script>
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/quarto-html/popper.min.js"></script>
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/quarto-html/anchor.min.js"></script>
+<link href="01_distribucion_frickius_modelos_rf_nb_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="01_distribucion_frickius_modelos_rf_nb_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="01_distribucion_frickius_modelos_rf_nb_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="01_distribucion_frickius_modelos_rf_nb_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/htmlwidgets-1.6.2/htmlwidgets.js"></script>
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/jquery-1.12.4/jquery.min.js"></script>
+<link href="01_distribucion_frickius_modelos_rf_nb_files/libs/leaflet-1.3.1/leaflet.css" rel="stylesheet">
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/leaflet-1.3.1/leaflet.js"></script>
+<link href="01_distribucion_frickius_modelos_rf_nb_files/libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet">
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/proj4-2.6.2/proj4.min.js"></script>
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
+<link href="01_distribucion_frickius_modelos_rf_nb_files/libs/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet">
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/leaflet-binding-2.1.2/leaflet.js"></script>
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/leaflet-providers-1.9.0/leaflet-providers_1.9.0.js"></script>
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/leaflet-providers-plugin-2.1.2/leaflet-providers-plugin.js"></script>
+<script src="01_distribucion_frickius_modelos_rf_nb_files/libs/Leaflet.Sync-0.0.5/L.Map.Sync.js"></script>
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Tabla de contenidos</h2>
+   
+  <ul class="collapse">
+  <li><a href="#configuración" id="toc-configuración" class="nav-link active" data-scroll-target="#configuración"><span class="header-section-number">1</span> Configuración</a></li>
+  <li><a href="#cargar-datos" id="toc-cargar-datos" class="nav-link" data-scroll-target="#cargar-datos"><span class="header-section-number">2</span> Cargar datos</a></li>
+  <li><a href="#mapa-de-los-datos" id="toc-mapa-de-los-datos" class="nav-link" data-scroll-target="#mapa-de-los-datos"><span class="header-section-number">3</span> Mapa de los datos</a></li>
+  <li><a href="#preparar-predictores" id="toc-preparar-predictores" class="nav-link" data-scroll-target="#preparar-predictores"><span class="header-section-number">4</span> Preparar predictores</a></li>
+  <li><a href="#preparar-los-datos-para-el-modelo" id="toc-preparar-los-datos-para-el-modelo" class="nav-link" data-scroll-target="#preparar-los-datos-para-el-modelo"><span class="header-section-number">5</span> Preparar los datos para el modelo</a></li>
+  <li><a href="#entrenar-modelos" id="toc-entrenar-modelos" class="nav-link" data-scroll-target="#entrenar-modelos"><span class="header-section-number">6</span> Entrenar modelos</a></li>
+  <li><a href="#metricas-en-set-de-entrenamiento-y-testeo" id="toc-metricas-en-set-de-entrenamiento-y-testeo" class="nav-link" data-scroll-target="#metricas-en-set-de-entrenamiento-y-testeo"><span class="header-section-number">7</span> Metricas en set de entrenamiento y testeo</a></li>
+  <li><a href="#predicción-espacial" id="toc-predicción-espacial" class="nav-link" data-scroll-target="#predicción-espacial"><span class="header-section-number">8</span> Predicción espacial</a></li>
+  <li><a href="#mapa-clasificación" id="toc-mapa-clasificación" class="nav-link" data-scroll-target="#mapa-clasificación"><span class="header-section-number">9</span> Mapa clasificación</a></li>
+  <li><a href="#importancia-variables-en-random-forest" id="toc-importancia-variables-en-random-forest" class="nav-link" data-scroll-target="#importancia-variables-en-random-forest"><span class="header-section-number">10</span> Importancia variables en Random Forest</a></li>
+  <li><a href="#evaluación-de-los-modelos" id="toc-evaluación-de-los-modelos" class="nav-link" data-scroll-target="#evaluación-de-los-modelos"><span class="header-section-number">11</span> Evaluación de los modelos</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Modelo de Distribución de Especie</h1>
+<p class="subtitle lead"><code>Frickius variolosus</code></p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Fecha de publicación</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">4 de noviembre de 2023</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="configuración" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="configuración"><span class="header-section-number">1</span> Configuración</h2>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/setup_c85a72240f8846642f785eb9d71c4eec">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tmap)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fs)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rnaturalearth)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="cargar-datos" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="cargar-datos"><span class="header-section-number">2</span> Cargar datos</h2>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/unnamed-chunk-1_b5ddc144362127da99ea19eb336eb700">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="do">## leer los datos</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span>  readxl<span class="sc">::</span><span class="fu">read_xlsx</span>(<span class="st">'../data/raw/Frickius_iNaturalist_BahiaExploradores.xlsx'</span>,<span class="at">sheet=</span><span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>(<span class="at">coords =</span><span class="fu">c</span>(<span class="st">'longitude'</span>,<span class="st">'latitude'</span>),<span class="at">crs=</span><span class="dv">4326</span>) </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="do">## agregar coordenadas</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span> <span class="fu">cbind</span>(<span class="at">lon=</span><span class="fu">st_coordinates</span>(data)[,<span class="dv">1</span>])</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#extensión de Chile</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>chl <span class="ot">&lt;-</span> <span class="fu">ne_countries</span>(<span class="at">country =</span> <span class="st">'Chile'</span>,<span class="at">scale =</span> <span class="st">'medium'</span>,<span class="at">returnclass =</span> <span class="st">'sf'</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#pseudo ausencia de la especie</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">417</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>sa <span class="ot">&lt;-</span> <span class="fu">st_as_sfc</span>(<span class="fu">st_bbox</span>(data)) <span class="sc">|&gt;</span> <span class="fu">st_sample</span>(<span class="dv">100</span>) </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co"># extensión espacial que se considerará para el modelo</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>bb <span class="ot">&lt;-</span> <span class="fu">st_bbox</span>(<span class="fu">c</span>(<span class="at">xmin=</span><span class="sc">-</span><span class="dv">77</span>,<span class="at">ymin=</span><span class="sc">-</span><span class="dv">56</span>,<span class="at">xmax=</span><span class="sc">-</span><span class="dv">63</span>,<span class="at">ymax=</span><span class="sc">-</span><span class="dv">37</span>))</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">#se agregan los puntos de seudo-ausencia de la especie</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>data4model <span class="ot">&lt;-</span> <span class="fu">c</span>(data<span class="sc">$</span>geometry,sa) <span class="sc">|&gt;</span> <span class="fu">st_as_sf</span>()</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co"># 1= presencia de la especie, 0 = seudo-ausencia de la especie</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>data4model<span class="sc">$</span>pres <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>data4model<span class="sc">$</span>pres[<span class="dv">1</span><span class="sc">:</span><span class="dv">49</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>data4model<span class="sc">$</span>pres[<span class="dv">50</span><span class="sc">:</span><span class="dv">149</span>] <span class="ot">&lt;-</span> <span class="dv">0</span></span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="mapa-de-los-datos" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="mapa-de-los-datos"><span class="header-section-number">3</span> Mapa de los datos</h2>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/mapa_inicial_1a448e858f4bafc1b23f10dc682c26dd">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">'view'</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(data4model) <span class="sc">+</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="at">col=</span><span class="st">'pres'</span>,<span class="at">style =</span> <span class="st">'cat'</span>,<span class="at">labels =</span><span class="fu">c</span>(<span class="st">'Ausente'</span>,<span class="st">'Presente'</span>),<span class="at">title =</span> <span class="st">'Estado'</span>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div class="leaflet html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-22424fe9cafc5c4f4264" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-22424fe9cafc5c4f4264">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"createMapPane","args":["tmap401",401]},{"method":"addProviderTiles","args":["Esri.WorldGrayCanvas",null,"Esri.WorldGrayCanvas",{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["OpenStreetMap",null,"OpenStreetMap",{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["Esri.WorldTopoMap",null,"Esri.WorldTopoMap",{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"pane":"tilePane"}]},{"method":"addCircleMarkers","args":[[-39.0147457,-42.7011866667,-41.1461342144,-46.3471069319,-46.1276435852,-45.5710312265,-39.2551703193,-39.4734858105,-39.4734866941,-39.5777322445,-38.855728,-41.093839,-38.5053635619,-43.4905217019,-45.552526186,-39.369934,-39.465463877,-45.9891125196,-37.9404783266,-39.3805614812,-44.4616959656,-41.0905722163,-45.5537041997,-41.30559,-38.8236514832,-39.4603229768,-38.6831587054,-38.6833553108,-41.1143047994,-38.4766516667,-38.6733583333,-39.5677415667,-37.9429140911,-37.9037827974,-46.1034237526,-39.3725827389,-46.0889945,-42.7267999097,-40.663270436,-46.4284736439,-46.5184179418,-42.80322646,-47.49893667,-41.8526461606,-41.4138836933,-41.4127823425,-37.8966885244,-39.1719056739,-39.2551755461,-45.58130640848911,-42.59658310821427,-45.15934356251312,-39.17694342761603,-38.81068154966243,-40.65935592265471,-39.48166737644191,-42.39557181680061,-46.10187383428456,-45.15584057567351,-45.90260847612313,-39.4488545599655,-42.84285023509263,-47.3269998128295,-45.44710114515618,-42.65514865710914,-38.61015922376363,-41.83664441824372,-46.27804638003555,-41.19302866744582,-42.56314405081163,-46.46391303701295,-38.35422775406942,-39.43668992964234,-41.67472693603079,-44.31098204018461,-43.88705015077771,-44.73962261570551,-45.18791103093346,-40.50561811635028,-37.99580109118163,-41.49584527521795,-46.65061687280199,-44.99448861152764,-38.60313647234405,-39.95642237524149,-45.42530385628662,-40.94395896753662,-38.07747815207117,-45.45768714265928,-42.37471253745132,-39.21444950853569,-45.85312054535681,-41.50966612047196,-40.55179548499348,-45.89240801087938,-41.5376815691329,-40.57694654343495,-40.1636905546156,-41.84000692261711,-43.8648685916578,-46.43704844206687,-40.02132630102942,-41.64399725763157,-44.63183056354342,-40.64908780105719,-38.9316978867981,-47.29288853746468,-39.89218916024208,-40.38503753418293,-46.63655001634417,-40.86570479831593,-38.85822703544896,-43.9910578075982,-40.21000490882512,-44.26838593311831,-38.28863631182943,-45.81595365911304,-38.01540506126889,-44.92496193108568,-47.03066511738602,-46.02911360971099,-47.46186047227228,-39.56853317506675,-39.0018207564226,-38.08633927602204,-40.02858285076265,-44.37751003523736,-44.393537195538,-39.07952342393138,-41.50635399659592,-40.19141973371735,-38.01648889792853,-38.47031826158413,-40.19342848135308,-38.88121554109686,-47.24152526061543,-41.97372122503636,-41.44803083431528,-45.3807644032735,-47.17809146580448,-43.26281002678209,-43.06363883059709,-46.09515078288862,-40.08375641219401,-38.86657475202839,-45.65775910927267,-43.40719631170018,-43.93451459129961,-47.25835915015607],[-72.0314461,-71.70558,-71.7551981805,-73.3230217056,-72.48347473139999,-72.06845741719999,-71.7312039104,-72.08028266549999,-72.0802863457,-72.1766024083,-71.64908699999999,-71.548827,-71.40776301069999,-72.1230836213,-71.9733318543,-71.29478,-72.5433422791,-72.04077500850001,-71.2845047191,-71.789036954,-72.54048027100001,-71.564973928,-72.12142289969999,-71.5713533333,-71.7215039581,-71.83791518210001,-71.8880329935,-71.8881012304,-71.5145325057,-71.5491483333,-71.8958966667,-71.5244293479,-71.2852939653,-71.33625499990001,-72.1808912605,-71.234692198,-72.2349083333,-71.74365577730001,-71.3717663661,-73.2470325351,-73.05290222239999,-71.65272573999999,-72.95275832999999,-71.5974745118,-72.12247054079999,-72.12412306669999,-71.36670742139999,-71.72789297999999,-71.7667323723,-71.31692428667937,-72.966998859973,-72.90787841651665,-73.00209192482227,-73.14098535074054,-71.52560109795526,-72.12178887945018,-72.25239174524599,-73.25088743505003,-71.81346193647218,-71.40673673126616,-72.14815177555577,-73.05414583626629,-71.71733857721328,-73.28697414242461,-71.96775354168794,-71.34837051745791,-71.71190366387754,-73.23687197428865,-73.28979472591621,-72.98135697761607,-71.79911759510163,-72.21136041260783,-72.60741392042111,-71.98702055419589,-71.6721516671963,-72.84662176296884,-72.64113134863203,-72.21882018079005,-73.01887189055851,-73.26874965771496,-72.1661697596146,-72.62974360062958,-71.87060933598353,-72.48699006538754,-72.87800489119391,-72.15125624760398,-73.17026392857954,-72.47035188833694,-72.96597898695414,-71.7260105270685,-73.27609874407672,-73.29217837843927,-72.3851125774061,-72.64791258835011,-72.86087672850438,-71.78274573436011,-72.78798455729168,-73.02421654215347,-73.06302272987313,-72.38851081182469,-72.80966490259753,-71.77602936365857,-71.41225782009015,-72.96399761831489,-71.46276212478313,-71.63811741000121,-72.23782220001286,-72.97073758415908,-73.26827700315491,-71.37012017929963,-72.56828580368118,-72.33653392993708,-72.06035672174316,-72.03016984104268,-71.67817328403525,-72.63840901656498,-73.1309335647035,-71.96421715264509,-72.31483815129673,-72.65354600779065,-72.69304396636961,-71.72186788916534,-72.39538305915595,-72.51264302616173,-72.32082145684353,-72.95192832869897,-72.34669543895474,-71.75561687400149,-71.99138448426459,-73.16709785350224,-72.3351963930821,-71.63737422840536,-72.59752482548663,-71.58403399003112,-72.22670323981187,-71.80792533943475,-73.20895263848251,-71.70343249810108,-71.43117932739804,-72.06800437731646,-72.07519233676823,-71.36085026881133,-72.91668641952258,-71.39637402730784,-72.76735334761045,-72.33541819627231,-71.4347108264549,-73.01547935909761,-72.30525174343113],[2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619,2.82842712474619],["X1","X1.1","X1.2","X1.3","X1.4","X1.5","X1.6","X1.7","X1.8","X1.9","X1.10","X1.11","X1.12","X1.13","X1.14","X1.15","X1.16","X1.17","X1.18","X1.19","X1.20","X1.21","X1.22","X1.23","X1.24","X1.25","X1.26","X1.27","X1.28","X1.29","X1.30","X1.31","X1.32","X1.33","X1.34","X1.35","X1.36","X1.37","X1.38","X1.39","X1.40","X1.41","X1.42","X1.43","X1.44","X1.45","X1.46","X1.47","X1.48","X0","X0.1","X0.2","X0.3","X0.4","X0.5","X0.6","X0.7","X0.8","X0.9","X0.10","X0.11","X0.12","X0.13","X0.14","X0.15","X0.16","X0.17","X0.18","X0.19","X0.20","X0.21","X0.22","X0.23","X0.24","X0.25","X0.26","X0.27","X0.28","X0.29","X0.30","X0.31","X0.32","X0.33","X0.34","X0.35","X0.36","X0.37","X0.38","X0.39","X0.40","X0.41","X0.42","X0.43","X0.44","X0.45","X0.46","X0.47","X0.48","X0.49","X0.50","X0.51","X0.52","X0.53","X0.54","X0.55","X0.56","X0.57","X0.58","X0.59","X0.60","X0.61","X0.62","X0.63","X0.64","X0.65","X0.66","X0.67","X0.68","X0.69","X0.70","X0.71","X0.72","X0.73","X0.74","X0.75","X0.76","X0.77","X0.78","X0.79","X0.80","X0.81","X0.82","X0.83","X0.84","X0.85","X0.86","X0.87","X0.88","X0.89","X0.90","X0.91","X0.92","X0.93","X0.94","X0.95","X0.96","X0.97","X0.98","X0.99"],"data4model",{"interactive":true,"className":"","pane":"tmap401","stroke":true,"color":"#666666","weight":1,"opacity":0.5,"fill":true,"fillColor":["#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#E56810","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9","#FEEEA9"],"fillOpacity":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},null,null,["<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>1<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>1<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>","<style> div.leaflet-popup-content {width:auto !important;overflow-y:auto; overflow-x:hidden;}<\/style><div style=\"max-height:25em;padding-right:0px;\"><table>\n\t\t\t   <thead><tr><th colspan=\"2\"><b>0<\/b><\/th><\/thead><\/tr><tr><td style=\"color: #888888;\"><nobr>pres<\/nobr><\/td><td align=\"right\"><nobr>0<\/nobr><\/td><\/tr><\/table><\/div>"],null,["1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","1","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]},{"method":"addLegend","args":[{"colors":["#FEEEA9","#E56810"],"labels":["Ausente","Presente"],"na_color":null,"na_label":"NA","opacity":1,"position":"topright","type":"unknown","title":"Estado","extra":null,"layerId":"legend401","className":"info legend data4model","group":"data4model"}]},{"method":"addLayersControl","args":[["Esri.WorldGrayCanvas","OpenStreetMap","Esri.WorldTopoMap"],"data4model",{"collapsed":true,"autoZIndex":true,"position":"topleft"}]}],"limits":{"lat":[-47.49893667,-37.8966885244],"lng":[-73.3230217056,-71.234692198]},"fitBounds":[-47.49893667,-73.3230217056,-37.8966885244,-71.234692198,[]]},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+<section id="preparar-predictores" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="preparar-predictores"><span class="header-section-number">4</span> Preparar predictores</h2>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/unnamed-chunk-2_09abe2f57b73216a0e9a2318cac0aea4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#predictores rasters humedad de suelo (sm), temperatura (temp) y precipitación (temp)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>dir_sm <span class="ot">&lt;-</span> <span class="st">'/mnt/md0/raster_procesada/ERA5-Land_tiff/clima/volumetric_soil_water/monthly'</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>dir_temp <span class="ot">&lt;-</span>  <span class="st">'/mnt/md0/raster_procesada/ERA5-Land_tiff/clima/2m_mean_temperature/monthly'</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>dir_pre <span class="ot">&lt;-</span>  <span class="st">'/mnt/md0/raster_procesada/ERA5-Land_tiff/clima/total_precipitation/monthly'</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>sm <span class="ot">&lt;-</span> <span class="fu">rast</span>(<span class="fu">dir_ls</span>(dir_sm,<span class="at">regexp =</span> <span class="st">'(2017|2018|2019|2020|2021|2022).*tif$'</span>))</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> <span class="fu">rast</span>(<span class="fu">dir_ls</span>(dir_temp,<span class="at">regexp =</span> <span class="st">'(2017|2018|2019|2020|2021|2022).*tif$'</span>))</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>pre <span class="ot">&lt;-</span> <span class="fu">rast</span>(<span class="fu">dir_ls</span>(dir_pre,<span class="at">regexp =</span> <span class="st">'(2017|2018|2019|2020|2021|2022).*tif$'</span>))</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#indices para calcular los promedios mensuales entre 2017-2022</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>ind <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>,<span class="dv">6</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">#predictores agregados mensuales</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>sm_z <span class="ot">&lt;-</span> <span class="fu">crop</span>(sm,bb)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>csm_z <span class="ot">&lt;-</span> <span class="fu">tapp</span>(sm_z,ind,sum)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(csm_z) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">'HS_'</span>,month.abb)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>pre_z <span class="ot">&lt;-</span> <span class="fu">crop</span>(pre,bb)<span class="sc">*</span><span class="dv">1000</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>pre_z <span class="ot">&lt;-</span> <span class="fu">tapp</span>(pre_z,ind,sum)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(pre_z) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">'Pre_'</span>,month.abb)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>temp_z <span class="ot">&lt;-</span> <span class="fu">crop</span>(temp,bb)<span class="sc">-</span><span class="fl">273.15</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>temp_z <span class="ot">&lt;-</span> <span class="fu">tapp</span>(temp_z,ind,mean)</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(temp_z) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">'Temp_'</span>,month.abb)</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="co">#NDVI índice de vegetación</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>dir_ndvi <span class="ot">&lt;-</span> <span class="st">'/mnt/md0/raster_procesada/MODIS/NDVI.MOD13A3.061'</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>files_ndvi <span class="ot">&lt;-</span> <span class="fu">dir_ls</span>(dir_ndvi,<span class="at">regexp =</span> <span class="st">'tif$'</span>)</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>ind <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>,\(i) <span class="fu">seq</span>(i,<span class="dv">284</span>,<span class="dv">12</span>))</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">lapply</span>(ind,\(i){</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rast</span>(files_ndvi[i]) <span class="sc">|&gt;</span> <span class="fu">app</span>(mean)</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>ndvi_mes <span class="ot">&lt;-</span> <span class="fu">rast</span>(res)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>ndvi_mes_r <span class="ot">&lt;-</span> <span class="fu">project</span>(ndvi_mes,temp_z)</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>ndvi_mes_r <span class="ot">&lt;-</span> <span class="fu">crop</span>(ndvi_mes_r,bb)</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(ndvi_mes_r) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">'ndvi_'</span>,month.abb)</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a><span class="co">#resampleo para que los predictores tengan la misma resolución espacial</span></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>sm_z <span class="ot">&lt;-</span>  <span class="fu">resample</span>(sm_z,ndvi_mes_r[[<span class="dv">1</span>]])</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>temp_z <span class="ot">&lt;-</span> <span class="fu">resample</span>(temp_z,ndvi_mes_r[[<span class="dv">1</span>]])</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>pre_z <span class="ot">&lt;-</span> <span class="fu">resample</span>(pre_z,ndvi_mes_r[[<span class="dv">1</span>]])</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a><span class="co">#elevación</span></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(geodata)</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a><span class="co">#obtener elevación a 30" de resolución espacial</span></span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>dem <span class="ot">&lt;-</span> <span class="fu">elevation_30s</span>(<span class="st">'chile'</span>, <span class="at">path=</span><span class="fu">tempdir</span>())</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>dem <span class="ot">&lt;-</span> <span class="fu">crop</span>(dem,bb)</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>dem <span class="ot">&lt;-</span> <span class="fu">resample</span>(dem,ndvi_mes_r[[<span class="dv">1</span>]])</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(dem) <span class="ot">&lt;-</span> <span class="st">'dem'</span></span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a><span class="co">#unir todos los predictores</span></span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">c</span>(ndvi_mes_r,pre_z,temp_z,dem)</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>data4model <span class="ot">&lt;-</span> <span class="fu">cbind</span>(data4model,<span class="fu">extract</span>(preds,data4model))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="preparar-los-datos-para-el-modelo" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="preparar-los-datos-para-el-modelo"><span class="header-section-number">5</span> Preparar los datos para el modelo</h2>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/unnamed-chunk-3_c4c0bb5c727deb1a124dea1beaf7745d">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Preparar los datos para la modelación</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>data4modelf <span class="ot">&lt;-</span> data4model <span class="sc">|&gt;</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>ID) <span class="sc">|&gt;</span> </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">-</span>pres,scale)) <span class="sc">|&gt;</span> </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pres =</span> <span class="fu">factor</span>(pres)) <span class="sc">|&gt;</span> </span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>data4modelf <span class="sc">|&gt;</span> <span class="fu">glimpse</span>()</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 92
+Columns: 38
+$ pres     &lt;fct&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…
+$ ndvi_Jan &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ ndvi_Feb &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ ndvi_Mar &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ ndvi_Apr &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ ndvi_May &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ ndvi_Jun &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ ndvi_Jul &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ ndvi_Aug &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ ndvi_Sep &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ ndvi_Oct &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ ndvi_Nov &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ ndvi_Dec &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_Jan  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_Feb  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_Mar  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_Apr  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_May  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_Jun  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_Jul  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_Aug  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_Sep  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_Oct  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_Nov  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Pre_Dec  &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_Jan &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_Feb &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_Mar &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_Apr &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_May &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_Jun &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_Jul &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_Aug &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_Sep &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_Oct &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_Nov &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ Temp_Dec &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;
+$ dem      &lt;dbl[,1]&gt; &lt;matrix[26 x 1]&gt;</code></pre>
+</div>
+</div>
+<p>Dividir datos en entranamiento y test</p>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/unnamed-chunk-4_b7f6d257eae2c86653f787bd7e4a77c3">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#dividir set de datos en entrenamiento y test</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>fric_split <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(data4modelf,<span class="at">strata =</span> pres)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>fric_split_train <span class="ot">&lt;-</span> <span class="fu">training</span>(fric_split)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>fric_test <span class="ot">&lt;-</span> <span class="fu">testing</span>(fric_split)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>fric_train <span class="ot">&lt;-</span> <span class="fu">training</span>(fric_split)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="entrenar-modelos" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="entrenar-modelos"><span class="header-section-number">6</span> Entrenar modelos</h2>
+<p>Random Forest</p>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/unnamed-chunk-5_4f280fd3fae44af57a7ce0519932c1be">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#modelo random forest </span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>rf_spec <span class="ot">&lt;-</span> <span class="fu">rand_forest</span>(<span class="at">trees =</span> <span class="dv">1000</span>, <span class="at">mode =</span> <span class="st">"classification"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_args</span>(<span class="at">importance =</span> <span class="st">'impurity'</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>rf_wflow <span class="ot">&lt;-</span> <span class="fu">workflow</span>(pres <span class="sc">~</span> ., rf_spec)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>rf_fit <span class="ot">&lt;-</span> <span class="fu">fit</span>(rf_wflow, fric_train)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Naive Bayes</p>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/unnamed-chunk-6_c4e40fc6e39e0c6c4bfb2ff4e5a62e58">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(agua)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(discrim)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(klaR)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># modelo naive bayes</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>nb_spec <span class="ot">&lt;-</span> <span class="fu">naive_Bayes</span>(<span class="at">mode =</span> <span class="st">"classification"</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>nb_wflow <span class="ot">&lt;-</span> <span class="fu">workflow</span>(pres <span class="sc">~</span> ., nb_spec)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>nb_fit <span class="ot">&lt;-</span> <span class="fu">fit</span>(nb_wflow, fric_train)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="metricas-en-set-de-entrenamiento-y-testeo" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="metricas-en-set-de-entrenamiento-y-testeo"><span class="header-section-number">7</span> Metricas en set de entrenamiento y testeo</h2>
+<p>Random Forest</p>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/unnamed-chunk-7_a3aa622a9b0526ca8d43b49bef20806b">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">augment</span>(rf_fit, <span class="at">new_data =</span> fric_train) <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">conf_mat</span>(<span class="at">truth =</span> pres, <span class="at">estimate =</span> .pred_class)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>          Truth
+Prediction  0  1
+         0 44  1
+         1  1 23</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">augment</span>(rf_fit, <span class="at">new_data =</span> fric_test) <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">accuracy</span>(<span class="at">truth =</span> pres, <span class="at">estimate =</span> .pred_class)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  .metric  .estimator .estimate
+  &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+1 accuracy binary         0.696</code></pre>
+</div>
+</div>
+<p>Naive Bayes</p>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/unnamed-chunk-8_13820bff477a926341d58e647913492f">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">augment</span>(nb_fit, <span class="at">new_data =</span> fric_train) <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">conf_mat</span>(<span class="at">truth =</span> pres, <span class="at">estimate =</span> .pred_class)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>          Truth
+Prediction  0  1
+         0 30  1
+         1 15 23</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">augment</span>(nb_fit, <span class="at">new_data =</span> fric_test) <span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">accuracy</span>(<span class="at">truth =</span> pres, <span class="at">estimate =</span> .pred_class)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  .metric  .estimator .estimate
+  &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+1 accuracy binary         0.565</code></pre>
+</div>
+</div>
+</section>
+<section id="predicción-espacial" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="predicción-espacial"><span class="header-section-number">8</span> Predicción espacial</h2>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/unnamed-chunk-9_ffde2ddf06dc3fb8019d1eb0d8b630b0">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>preds_tbl <span class="ot">&lt;-</span> <span class="fu">values</span>(preds) <span class="sc">|&gt;</span> </span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">everything</span>(),\(x) <span class="fu">scale</span>(x)[,<span class="dv">1</span>]))</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>preds_tbl <span class="sc">|&gt;</span> </span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowid_to_column</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">if_all</span>(<span class="fu">everything</span>(),\(x) <span class="sc">!</span><span class="fu">is.na</span>(x))) <span class="sc">|&gt;</span> </span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(rowid) <span class="ot">-&gt;</span> rid</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>preds_fric_rf <span class="ot">&lt;-</span> <span class="fu">predict</span>(rf_fit,preds_tbl[rid,])</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>preds_fric_nb <span class="ot">&lt;-</span> <span class="fu">predict</span>(nb_fit,preds_tbl[rid,])</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>preds_final_rf <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">preds =</span> <span class="fu">rep</span>(<span class="cn">NA</span>,<span class="fu">nrow</span>(preds_tbl)))</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>preds_final_nb <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">preds =</span> <span class="fu">rep</span>(<span class="cn">NA</span>,<span class="fu">nrow</span>(preds_tbl)))</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>preds_final_rf[rid,] <span class="ot">&lt;-</span> preds_fric_rf<span class="sc">$</span>.pred_class</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>preds_final_nb[rid,] <span class="ot">&lt;-</span> preds_fric_nb<span class="sc">$</span>.pred_class</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>res_rf <span class="ot">&lt;-</span> preds[[<span class="dv">1</span>]]</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>res_nb <span class="ot">&lt;-</span> preds[[<span class="dv">1</span>]]</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a><span class="fu">values</span>(res_rf) <span class="ot">&lt;-</span> <span class="cn">NA</span> </span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a><span class="fu">values</span>(res_nb) <span class="ot">&lt;-</span> <span class="cn">NA</span> </span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a><span class="fu">values</span>(res_rf) <span class="ot">&lt;-</span> preds_final_rf<span class="sc">$</span>preds</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a><span class="fu">values</span>(res_nb) <span class="ot">&lt;-</span> preds_final_nb<span class="sc">$</span>preds</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="mapa-clasificación" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="mapa-clasificación"><span class="header-section-number">9</span> Mapa clasificación</h2>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/unnamed-chunk-10_efdc897f4101f7cfa37ecec1cb741fac">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>res_modelos <span class="ot">&lt;-</span> <span class="fu">c</span>(res_rf,res_nb)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(res_modelos) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'rf'</span>,<span class="st">'nb'</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(res_modelos) <span class="sc">+</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_raster</span>(<span class="at">style=</span><span class="st">'cat'</span>,<span class="at">labels =</span><span class="fu">c</span>(<span class="st">'Ausente'</span>,<span class="st">'Presente'</span>),<span class="at">title =</span> <span class="st">'Estado'</span>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div style="display:inline;width:49%;float:left;border-style:solid;border-color:#BEBEBE;border-width:1px 1px 1px 1px;">
+<div class="leaflet html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-8150" style="width:100%;height:400px;"></div>
+<script type="application/json" data-for="htmlwidget-8150">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"createMapPane","args":["tmap401",401]},{"method":"addProviderTiles","args":["Esri.WorldGrayCanvas",null,"Esri.WorldGrayCanvas",{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["OpenStreetMap",null,"OpenStreetMap",{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["Esri.WorldTopoMap",null,"Esri.WorldTopoMap",{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"pane":"tilePane"}]},{"method":"addRasterImage","args":["data:image/png;base64,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",[[-36.96150899184376,-75.6950024449548],[-55.7629306712507,-66.96444765923806]],1,null,"tmap401","res_modelos"]},{"method":"addLegend","args":[{"colors":["#8DD3C7","#FFFFB3"],"labels":["Ausente","Presente"],"na_color":null,"na_label":"NA","opacity":1,"position":"topright","type":"unknown","title":"Estado","extra":null,"layerId":"legend401","className":"info legend res_modelos","group":"res_modelos"}]},{"method":"addLayersControl","args":[["Esri.WorldGrayCanvas","OpenStreetMap","Esri.WorldTopoMap"],"res_modelos",{"collapsed":true,"autoZIndex":true,"position":"topleft"}]}],"limits":{"lat":[-55.7629306712507,-36.96150899184376],"lng":[-75.6950024449548,-66.96444765923806]},"fitBounds":[-55.66200082678544,-75.69500244495481,-36.96150899184377,-66.99399291637333,[]]},"evals":[],"jsHooks":[]}</script>
+</div>
+<div style="display:inline;width:49%;float:left;border-style:solid;border-color:#BEBEBE;border-width:1px 1px 1px 1px;">
+<div class="leaflet html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-8970" style="width:100%;height:400px;"></div>
+<script type="application/json" data-for="htmlwidget-8970">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"createMapPane","args":["tmap401",401]},{"method":"addProviderTiles","args":["Esri.WorldGrayCanvas",null,"Esri.WorldGrayCanvas",{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["OpenStreetMap",null,"OpenStreetMap",{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"pane":"tilePane"}]},{"method":"addProviderTiles","args":["Esri.WorldTopoMap",null,"Esri.WorldTopoMap",{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"pane":"tilePane"}]},{"method":"addRasterImage","args":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAADkCAYAAAA7M2LSAAAKc0lEQVR4nO1d21HkSgyVt24IhAEBEMQmA3FAMgRBABAGOfh+bGlWo9Gjnx7J26eKAjyewT7oLXV7gwl4+/rca85/efy5+n3bfm9DL6gDv+59ARL2/aOK4JkYQlCtxHiIJEHdF9JDDlctRCSCuiXo9em562bevx8uP0ciBnFXG0TJAfhre05ng0YjkiTdlSDNBkVCKBVDnE7Fegz1y+OPSlQEDJOgXpKiYhhBo4PFKGp2uARRaYksOYiQbj4S7qJiL48/4Y0z4q5G+p9SsRIJQkJKI+UIhvouNmjfP/b374d/S8VakEHFhiaFLbGQRNJpk1XLUGuv8XpQJHIADlQxLl0Z1AtgMkGWRKHkRI+Hpohza9snmnoBBEk1IkvQcvMO/rvnH3//foDXp+ctQsSsYbgESfbn9el50wz2vn/sEW0P4hAJKjHaUUkaShAlgkrM6GrjkQjhxSJjmFi3xD7v3w+hYyCAg6Y7JAO9bb+36OQATJju4GS8fX3umj16efwJTQ7AhOmOt6/PHUlAcjTX3/u3j0A3QVxC6HH6+75/XIjD89+/H0KUVS1MH6BCMjg5WTCtN19CRHTpAZgkQWh3LNXL4MEAJvXFKDnUYFMy378fwpMDMDDVkCRJk6JMdqhLgrTci5/DDXSm3GyIDaKxjhT3ZI6FVrLqoOs/aKmKlF5wSTp9qmFVCqVzqdF+fXoO1ySUMOQCS20OfX3E3z0CU1rPVKVqpCwihsVB3JPhca8cEh3TVEw6Jxs5AAcUzPi5VNIyeLFDLk4jMXpPDGByX8zyZG9fn/u2xVe55gtsMb4Z042VakQBrwtlyui7UHOjGclp0v+amEYjI7rtQVTbIHrDJZJAk1N+LAOqCWqpCmYiZChKScpoe7pQe7OZPViXDZJ+187PmqyuQNFBs5FuOR+lKJMkVV+oVoC3+mLS8SwkNalYT5D4+vS8ZRggR1T9F7n09GbwON0RuSbUnGrgzyWqpXVeM6jZtAv02j5Z3P4hbt4b7IwM8yJ7VcGyP1lIWoGiA5OgkUEdDxhfHn9g3z/26HOKhxppapwztHwADlQx6t4j7nanYeqiXqm4lsEwUxyy6lkiKkPbGaCxs1rq/lGtRAlKUjSblqxKKQWvAGSwQSsOclCdzbdGwpJd4hKUwSapqCm28zVj0ncKGjBmCB4v0JYX4HeNNIkMThoSIX3Nu6N6uKmGdLy2tix5vcj7dQyBJT2WVAHk8F7TIPXuJZXLQtJy8w6mbU1Bj8lz0z83UhTRzTdLkGRrrOQ0Uz+eYkpXwxr7BYCrLSluLiiYFBVLECelZpUPvh9vPlPjsBmlLl6KqqMHhxRVNoiPskg3T49LASLu48oRlaTl5kegZDJMy9E09eI/R0VVucJb5lTqyrPsugDQON2BkFrK/D18+ZN4EYGJUm2QpCYIyc1rdeqS+nVkNVMJQhI8qQHQp87o+dYsUEoJ0qBN2msrnemxbfudrsy63LyDphE6ihIPhk1Cydakl6Ce7W14BC2REdlAAzCCrDyKg0qOdpMl9iedBHmlDJpr0ZFeabkTPqJGIydDJH1DkLbVlrTtBJ73/v1griOTSIhODGJ5MQdmG9kawgTQSxcImnNZEhPZDplFe22eGWcMS8DJob9HJgbRdIH0hrkE8bGXrJKDaLJB1o2VkJOBGEQTQZZU8OS09v3RsLyYg2qCuMHlr9cY8AzokqAeVclih5raPnhz3oyP9HqG/IuiiiCqOtpNvj49b2cajlpG2kFVb37bfl+kg8Y70ngLnkdVKqNkdVUUrR03pXZPJtuDaJ6Tll6z3pttEQvC7IvxY9JgAp6blQAPZonDKpJZ78NzM67u4VhezIEwXPkX1qa1XCJojUf6rKyG+qpgZi1U4ZVE+t2Ljq2+WHRcEST12CW7g2RQoq4rhfaG26eANtnBWzXUq+EDjqiXy7SAV8Iy0g5uemBeTMPVyUsfshpnhClBWus5q7q04BeA7LW0NWGax5KkLrv0ABRE0nwqg0uPpmIlkx0ZsIy0gwtB0loMK5bxJIKuS80qPQCkN48HuCej0bLU0dD682fJ7s3snLdvtHRBaj+PusB74+LFSk5GdaEqk7GMWoNlpB245Qre6uE2iUrQmVQLcZXNS7UcJIDHRNwWnZEcAKJiSA6fSeQ/0/OPucT7wpxy5cfoZGr2+KYUy0g7uIqk6Xwz/Q6gj72cadRFws2kPb9hJI16KyTr7etz563os8G0IdSNS0X7s7t4gGWDXBRtbmLVds6qWoibtg8lgxfKMA/zJuzPBNGLScuiAOx1p2eVJHNZt2SYKbgUZR1QsLCMtAPRSEtjL1wy9v3jKmY6q026ECT14mtjmzOSdKViJbsj8N483zRJM9ZZm43LBjm4EFSy4lCqSeMxrl607ZN5wsOUIFQbrbuKx7S46QwoUjGMnpGQnvUW2aRo2SAHarLKC/TWAIMEqxvSdcUHQ5Wg0uZgSds5KzkAAx5+VLvrSzaSlg1y0LzqGSda6XEuaXxPj4wQg8OSYU7+Hun4y+PPzca22VRMHCQHKEtU0bshETfvZcRlI6cZlEiaTmiSRNOO465yDJaRdjBE5LGIT22XtDro8kcTqZooQbWeR5ubpnPWvDObRd1EgqTHXiEs8qxNKAFySQ5i2SAHRSmE5/Ilu8ML/zwUwGM9OEIi3c1urS2Rea5Gz+dkoRHnf6en0H/Envhdz9WQ1rRKqxY5Wbi/okVOrXTMKu8uG+SgiSBtuaa2GBi/atShZQaSloKlRmfNZyGqn+1Tut8iPffvhifX/Xsv3tK2N5XO9chsNehLxRwMIUgz1jTYtDYpACj7D1v7Uc/yZkPiCBz+5JP6tb390hv09qWW7M/dVAwNM78Aa0GeVhrxHghg9eMkUka4/WWDHHQTZG24xKVICgt4MU2TIqsvx98/0hY1PV+s9HUpXuLbdgHcElDisrU0Y3SLqeoDvEK+tPaVn4PEaLkZQNlNautnretvIWzZIAdVBHnP0JAqANLODZb0vH19ivNGCE2tZmX0w+opvevHMJbCPppG4tH7xw4tOGmDVdIe09pAFp3i1+auS2yNFXXXYNkgB0MJ4u5a6tXjeZrdoFOzJe5e+rpLHFQDrSOCKQkuxON7vNIUxKs2HtUhWSrmYApB3qohgD8qhGo2YrXirAL+IWKqReDWCqJS0moIaVHLoY9TlyB1O/A1aSDdmhCRJXPuqutlgxxMl6BSoDRZjUoETYRpUDkD0yVIysukASx+HIFNRq21jeBhwagwYKmYg0OMtObBaJPvjxT9wCs7T1pFRGcB6CYH0u4QfIi0FofO63CypAoAT3jpOdpgO4+vuF1CkjLOJ93AimusEi7/DOmr5XqWDToLuPR4UgRwK0ktfzeMTmpTaqUDpdRgr4LZgQglQQD2kzlLPseSpLvXpGejhCT+ZIdegpaKOQhPkJV/SXs+auXeUwSJFDXLISRSSlYhnQYlyx80gnB6RDrG4yPpWHgVuzdS6WVJsgpgP5iJnlfSoU1FkAbJkFs3z4mSVgfg5ywVc3BaCVpQIKnWqgctjIUWbS8wlJC0VGyhD/8DzIn3pO41ztQAAAAASUVORK5CYII=",[[-36.96150899184376,-75.6950024449548],[-55.7629306712507,-66.96444765923806]],1,null,"tmap401","res_modelos"]},{"method":"addLegend","args":[{"colors":["#8DD3C7","#FFFFB3"],"labels":["Ausente","Presente"],"na_color":null,"na_label":"NA","opacity":1,"position":"topright","type":"unknown","title":"Estado","extra":null,"layerId":"legend401","className":"info legend res_modelos","group":"res_modelos"}]},{"method":"addLayersControl","args":[["Esri.WorldGrayCanvas","OpenStreetMap","Esri.WorldTopoMap"],"res_modelos",{"collapsed":true,"autoZIndex":true,"position":"topleft"}]}],"limits":{"lat":[-55.7629306712507,-36.96150899184376],"lng":[-75.6950024449548,-66.96444765923806]},"fitBounds":[-55.66200082678544,-75.69500244495481,-36.96150899184377,-66.99399291637333,[]]},"evals":[],"jsHooks":[]}</script>
+</div>
+<script>
+HTMLWidgets.addPostRenderHandler(function() {
+var leaf_widgets = {};
+                Array.prototype.map.call(
+                 document.querySelectorAll(".leaflet"),
+                   function(ldiv){
+                     if (HTMLWidgets.find("#" + ldiv.id) && HTMLWidgets.find("#" + ldiv.id).getMap()) {
+                        leaf_widgets[ldiv.id] = HTMLWidgets.find("#" + ldiv.id).getMap();
+                     }
+                   }
+                );
+               
+
+leaf_widgets['htmlwidget-8970'].sync(leaf_widgets['htmlwidget-8150'],{syncCursor: true, noInitialSync: true});
+leaf_widgets['htmlwidget-8150'].sync(leaf_widgets['htmlwidget-8970'],{syncCursor: true, noInitialSync: true});
+
+});
+</script>
+</div>
+</div>
+</section>
+<section id="importancia-variables-en-random-forest" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="importancia-variables-en-random-forest"><span class="header-section-number">10</span> Importancia variables en Random Forest</h2>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/unnamed-chunk-11_38b1accdcce2622730026a3212be387a">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vip)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>rf_fit <span class="sc">|&gt;</span> </span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">extract_fit_parsnip</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">vip</span>(<span class="at">geom =</span> <span class="st">"point"</span>) <span class="sc">+</span> </span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Random forest variable importance"</span>) </span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="01_distribucion_frickius_modelos_rf_nb_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="evaluación-de-los-modelos" class="level2" data-number="11">
+<h2 data-number="11" class="anchored" data-anchor-id="evaluación-de-los-modelos"><span class="header-section-number">11</span> Evaluación de los modelos</h2>
+<p>Crear folds para la evaluación.</p>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/crea_folds_07b7f4a4c584601b8346627ca0302192">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">345</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>folds <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(fric_split_train, <span class="at">v =</span> <span class="dv">5</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>folds</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#  5-fold cross-validation 
+# A tibble: 5 × 2
+  splits          id   
+  &lt;list&gt;          &lt;chr&gt;
+1 &lt;split [55/14]&gt; Fold1
+2 &lt;split [55/14]&gt; Fold2
+3 &lt;split [55/14]&gt; Fold3
+4 &lt;split [55/14]&gt; Fold4
+5 &lt;split [56/13]&gt; Fold5</code></pre>
+</div>
+</div>
+<section id="random-forest" class="level3" data-number="11.1">
+<h3 data-number="11.1" class="anchored" data-anchor-id="random-forest"><span class="header-section-number">11.1</span> Random Forest</h3>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/eva_RF_384ded2c0f804e164e67e0d42960bbff">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>rf_wf <span class="ot">&lt;-</span> </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">workflow</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(rf_spec) <span class="sc">|&gt;</span> </span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_formula</span>(pres <span class="sc">~</span> .)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>rf_fit_rs <span class="ot">&lt;-</span> </span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  rf_wf <span class="sc">|&gt;</span> </span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit_resamples</span>(folds)</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>rf_fit_rs <span class="sc">|&gt;</span> </span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(<span class="fu">c</span>(.metrics))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 7
+   splits          id    .metric  .estimator .estimate .config          .notes  
+   &lt;list&gt;          &lt;chr&gt; &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;            &lt;list&gt;  
+ 1 &lt;split [55/14]&gt; Fold1 accuracy binary         0.786 Preprocessor1_M… &lt;tibble&gt;
+ 2 &lt;split [55/14]&gt; Fold1 roc_auc  binary         0.917 Preprocessor1_M… &lt;tibble&gt;
+ 3 &lt;split [55/14]&gt; Fold2 accuracy binary         0.714 Preprocessor1_M… &lt;tibble&gt;
+ 4 &lt;split [55/14]&gt; Fold2 roc_auc  binary         0.545 Preprocessor1_M… &lt;tibble&gt;
+ 5 &lt;split [55/14]&gt; Fold3 accuracy binary         0.714 Preprocessor1_M… &lt;tibble&gt;
+ 6 &lt;split [55/14]&gt; Fold3 roc_auc  binary         0.844 Preprocessor1_M… &lt;tibble&gt;
+ 7 &lt;split [55/14]&gt; Fold4 accuracy binary         0.429 Preprocessor1_M… &lt;tibble&gt;
+ 8 &lt;split [55/14]&gt; Fold4 roc_auc  binary         0.511 Preprocessor1_M… &lt;tibble&gt;
+ 9 &lt;split [56/13]&gt; Fold5 accuracy binary         0.692 Preprocessor1_M… &lt;tibble&gt;
+10 &lt;split [56/13]&gt; Fold5 roc_auc  binary         0.825 Preprocessor1_M… &lt;tibble&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">collect_metrics</span>(rf_fit_rs)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 6
+  .metric  .estimator  mean     n std_err .config             
+  &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;               
+1 accuracy binary     0.667     5  0.0617 Preprocessor1_Model1
+2 roc_auc  binary     0.729     5  0.0833 Preprocessor1_Model1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>rf_testing_pred <span class="ot">&lt;-</span> </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(rf_fit, fric_test) <span class="sc">|&gt;</span> </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(<span class="fu">predict</span>(rf_fit, fric_test, <span class="at">type =</span> <span class="st">"prob"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(fric_test <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(pres))</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>rf_testing_pred <span class="sc">|&gt;</span>                    <span class="co"># test set predictions</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">#mutate(across(everything(),as.numeric)) |&gt; </span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">roc_auc</span>(<span class="at">truth =</span> pres, .pred_0)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  .metric .estimator .estimate
+  &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+1 roc_auc binary         0.825</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>rf_testing_pred <span class="sc">%&gt;%</span>                   <span class="co"># test set predictions</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">accuracy</span>(<span class="at">truth =</span> pres, .pred_class)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  .metric  .estimator .estimate
+  &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+1 accuracy binary         0.696</code></pre>
+</div>
+</div>
+</section>
+<section id="naive-bayes" class="level3" data-number="11.2">
+<h3 data-number="11.2" class="anchored" data-anchor-id="naive-bayes"><span class="header-section-number">11.2</span> Naive Bayes</h3>
+<div class="cell" data-hash="01_distribucion_frickius_modelos_rf_nb_cache/html/eva_NB_eff586965b62c3f329a33be311d00be2">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>nb_wf <span class="ot">&lt;-</span> </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">workflow</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(nb_spec) <span class="sc">|&gt;</span> </span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_formula</span>(pres <span class="sc">~</span> .)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>nb_fit_rs <span class="ot">&lt;-</span> </span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  nb_wf <span class="sc">|&gt;</span> </span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit_resamples</span>(folds)</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>nb_fit_rs <span class="sc">|&gt;</span> </span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(<span class="fu">c</span>(.metrics))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 7
+   splits          id    .metric  .estimator .estimate .config          .notes  
+   &lt;list&gt;          &lt;chr&gt; &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;            &lt;list&gt;  
+ 1 &lt;split [55/14]&gt; Fold1 accuracy binary         0.786 Preprocessor1_M… &lt;tibble&gt;
+ 2 &lt;split [55/14]&gt; Fold1 roc_auc  binary         0.792 Preprocessor1_M… &lt;tibble&gt;
+ 3 &lt;split [55/14]&gt; Fold2 accuracy binary         0.643 Preprocessor1_M… &lt;tibble&gt;
+ 4 &lt;split [55/14]&gt; Fold2 roc_auc  binary         0.515 Preprocessor1_M… &lt;tibble&gt;
+ 5 &lt;split [55/14]&gt; Fold3 accuracy binary         0.786 Preprocessor1_M… &lt;tibble&gt;
+ 6 &lt;split [55/14]&gt; Fold3 roc_auc  binary         0.867 Preprocessor1_M… &lt;tibble&gt;
+ 7 &lt;split [55/14]&gt; Fold4 accuracy binary         0.5   Preprocessor1_M… &lt;tibble&gt;
+ 8 &lt;split [55/14]&gt; Fold4 roc_auc  binary         0.556 Preprocessor1_M… &lt;tibble&gt;
+ 9 &lt;split [56/13]&gt; Fold5 accuracy binary         0.769 Preprocessor1_M… &lt;tibble&gt;
+10 &lt;split [56/13]&gt; Fold5 roc_auc  binary         0.85  Preprocessor1_M… &lt;tibble&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>nb_testing_pred <span class="ot">&lt;-</span> </span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(nb_fit, fric_test) <span class="sc">|&gt;</span> </span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(<span class="fu">predict</span>(nb_fit, fric_test, <span class="at">type =</span> <span class="st">"prob"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(fric_test <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(pres))</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>nb_testing_pred <span class="sc">|&gt;</span>                    <span class="co"># test set predictions</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">#mutate(across(everything(),as.numeric)) |&gt; </span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">roc_auc</span>(<span class="at">truth =</span> pres, .pred_0)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  .metric .estimator .estimate
+  &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+1 roc_auc binary         0.692</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>nb_testing_pred <span class="sc">%&gt;%</span>                   <span class="co"># test set predictions</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">accuracy</span>(<span class="at">truth =</span> pres, .pred_class)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  .metric  .estimator .estimate
+  &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+1 accuracy binary         0.565</code></pre>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copiado");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copiado");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
