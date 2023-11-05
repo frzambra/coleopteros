@@ -1,6 +1,7 @@
 ---
 title: "Modelo de Distribución de Especie"
 subtitle: "`Frickius variolosus`"
+author: "Francisco Zambrano"
 date: "`r Sys.Date()`"
 lang: es
 format: 
@@ -99,7 +100,7 @@ dir_ndvi <- '/mnt/md0/raster_procesada/MODIS/NDVI.MOD13A3.061'
 files_ndvi <- dir_ls(dir_ndvi,regexp = 'tif$')
 ind <- sapply(1:12,\(i) seq(i,284,12))
 res <- lapply(ind,\(i){
-  rast(files_ndvi[i]) |> app(mean)
+  rast(files_ndvi[i]) |> app(mean,na.rm=TRUE)
 })
 
 ndvi_mes <- rast(res)
@@ -115,7 +116,7 @@ pre_z <- resample(pre_z,ndvi_mes_r[[1]])
 #elevación
 library(geodata)
 #obtener elevación a 30" de resolución espacial
-dem <- elevation_30s('chile', path=tempdir())
+dem <- elevation_global(.5, path=tempdir())
 dem <- crop(dem,bb)
 dem <- resample(dem,ndvi_mes_r[[1]])
 names(dem) <- 'dem'
@@ -237,7 +238,9 @@ res_modelos <- c(res_rf,res_nb)
 names(res_modelos) <- c('rf','nb')
 
 tm_shape(res_modelos) +
-  tm_raster(style='cat',labels =c('Ausente','Presente'),title = 'Estado')
+  tm_raster(style='cat',labels =c('Ausente','Presente'),title = 'Estado') +
+  tm_shape(data4model) +
+  tm_dots(col='pres',style = 'cat',labels =c('Ausente','Presente'),title = 'Estado')
 ```
 ## Importancia variables en Random Forest
 

@@ -60,7 +60,7 @@ dir_ndvi <- '/mnt/md0/raster_procesada/MODIS/NDVI.MOD13A3.061'
 files_ndvi <- dir_ls(dir_ndvi,regexp = 'tif$')
 ind <- sapply(1:12,\(i) seq(i,284,12))
 res <- lapply(ind,\(i){
-  rast(files_ndvi[i]) |> app(mean)
+  rast(files_ndvi[i]) |> app(mean,na.rm=TRUE)
 })
 
 ndvi_mes <- rast(res)
