@@ -1,6 +1,6 @@
 ---
 title: "Modelo de Distribución de Especie"
-subtitle: "`Frickius variolosus`"
+subtitle: "`Frickius Variolosus`"
 author: "Francisco Zambrano"
 date: "`r Sys.Date()`"
 lang: es
@@ -10,10 +10,10 @@ format:
     toc-depth: 2
     number-sections: true
 execute:
-  cache: refresh
+  cache: false
   warning: false
   message: false
-editor: visual
+editor: source
 ---
 
 ## Configuración
@@ -56,8 +56,9 @@ data4model <- c(data$geometry,sa) |> st_as_sf()
 # 1= presencia de la especie, 0 = seudo-ausencia de la especie
 data4model$pres <- NA
 data4model$pres[1:49] <- 1
-data4model$pres[50:149] <- 0
+data4model$pres[50:nrow(data4model)] <- 0
 ```
+
 ## Mapa de los datos
 
 ```{r mapa_inicial}
@@ -67,7 +68,7 @@ tm_shape(data4model) +
   tm_dots(col='pres',style = 'cat',labels =c('Ausente','Presente'),title = 'Estado')
 ```
 
-## Preparar predictores 
+## Preparar predictores
 
 ```{r}
 #predictores rasters humedad de suelo (sm), temperatura (temp) y precipitación (temp)
@@ -104,7 +105,7 @@ res <- lapply(ind,\(i){
 })
 
 ndvi_mes <- rast(res)
-ndvi_mes_r <- project(ndvi_mes,temp_z)
+ndvi_mes_r <- project(ndvi_mes,crs(temp_z))
 ndvi_mes_r <- crop(ndvi_mes_r,bb)
 names(ndvi_mes_r) <- paste0('ndvi_',month.abb)
 
@@ -112,6 +113,7 @@ names(ndvi_mes_r) <- paste0('ndvi_',month.abb)
 sm_z <-  resample(sm_z,ndvi_mes_r[[1]])
 temp_z <- resample(temp_z,ndvi_mes_r[[1]])
 pre_z <- resample(pre_z,ndvi_mes_r[[1]])
+csm_z <- resample(csm_z,ndvi_mes_r[[1]])
 
 #elevación
 library(geodata)
@@ -122,7 +124,7 @@ dem <- resample(dem,ndvi_mes_r[[1]])
 names(dem) <- 'dem'
 
 #unir todos los predictores
-preds <- c(ndvi_mes_r,pre_z,temp_z,dem)
+preds <- c(ndvi_mes_r,pre_z,temp_z,csm_z,dem)
 
 data4model <- cbind(data4model,extract(preds,data4model))
 
@@ -134,15 +136,15 @@ data4model <- cbind(data4model,extract(preds,data4model))
 #Preparar los datos para la modelación
 data4modelf <- data4model |> 
   st_drop_geometry() |> 
-  select(-ID) |> 
-  mutate(across(-pres,scale)) |> 
+  dplyr::select(-ID) |> 
+  #mutate(across(-pres,\(x) scale(x) |> as.numeric())) |> 
   mutate(pres = factor(pres)) |> 
   drop_na()
 
 data4modelf |> glimpse()
 ```
 
-Dividir datos en entranamiento y test
+Dividir datos en entrenamiento y test
 
 ```{r}
 #dividir set de datos en entrenamiento y test
@@ -184,7 +186,7 @@ nb_fit <- fit(nb_wflow, fric_train)
 Random Forest
 
 ```{r}
-augment(rf_fit, new_data = fric_train) %>%
+augment(rf_fit, new_data = fric_test) %>%
   conf_mat(truth = pres, estimate = .pred_class)
 
 augment(rf_fit, new_data = fric_test) %>%
@@ -195,7 +197,7 @@ Naive Bayes
 
 ```{r}
 #| warning: false
-augment(nb_fit, new_data = fric_train) %>%
+augment(nb_fit, new_data = fric_test) %>%
   conf_mat(truth = pres, estimate = .pred_class)
 
 augment(nb_fit, new_data = fric_test) %>%
@@ -206,8 +208,8 @@ augment(nb_fit, new_data = fric_test) %>%
 
 ```{r}
 preds_tbl <- values(preds) |> 
-  as_tibble() |> 
-  mutate(across(everything(),\(x) scale(x)[,1]))
+  as_tibble() 
+  #mutate(across(everything(),\(x) scale(x)[,1]))
 
 preds_tbl |> 
   rowid_to_column() |> 
@@ -215,33 +217,40 @@ preds_tbl |>
   pull(rowid) -> rid
 
 preds_fric_rf <- predict(rf_fit,preds_tbl[rid,])
-preds_fric_nb <- predict(nb_fit,preds_tbl[rid,])
 
-preds_final_rf <- tibble(preds = rep(NA,nrow(preds_tbl)))
-preds_final_nb <- tibble(preds = rep(NA,nrow(preds_tbl)))
+# suppressWarnings(
+#   preds_fric_nb <- predict(nb_fit,preds_tbl[rid,])
+# )
 
-preds_final_rf[rid,] <- preds_fric_rf$.pred_class
-preds_final_nb[rid,] <- preds_fric_nb$.pred_class
+#preds_final_rf <- tibble(preds = rep(NA,nrow(preds_tbl)))
+#preds_final_nb <- tibble(preds = rep(NA,nrow(preds_tbl)))
+
+#preds_final_rf[rid,] <- preds_fric_rf$.pred_class
+#preds_final_nb[rid,] <- preds_fric_nb$.pred_class
 
 res_rf <- preds[[1]]
-res_nb <- preds[[1]]
+#res_nb <- preds[[1]]
 values(res_rf) <- NA 
-values(res_nb) <- NA 
+#values(res_nb) <- NA 
 
-values(res_rf) <- preds_final_rf$preds
-values(res_nb) <- preds_final_nb$preds
+values(res_rf)[rid] <- preds_fric_rf$.pred_class 
+#values(res_nb)[rid] <- preds_fric_nb$.pred_class
+res_rf <- res_rf-1
+#res_nb <- res_nb -1
 ```
 
 ## Mapa clasificación
-```{r}
-res_modelos <- c(res_rf,res_nb)
-names(res_modelos) <- c('rf','nb')
 
-tm_shape(res_modelos) +
+```{r}
+#res_modelos <- c(res_rf,res_nb)
+#names(res_modelos) <- c('rf','nb')
+
+tm_shape(res_rf) +
   tm_raster(style='cat',labels =c('Ausente','Presente'),title = 'Estado') +
   tm_shape(data4model) +
   tm_dots(col='pres',style = 'cat',labels =c('Ausente','Presente'),title = 'Estado')
 ```
+
 ## Importancia variables en Random Forest
 
 ```{r}
@@ -293,33 +302,31 @@ rf_testing_pred %>%                   # test set predictions
 
 ```
 
-### Naive Bayes
+<!-- ### Naive Bayes -->
 
-```{r eva_NB}
+<!-- ```{r eva_NB} -->
 
-nb_wf <- 
-  workflow() |> 
-  add_model(nb_spec) |> 
-  add_formula(pres ~ .)
+<!-- nb_wf <-  -->
+<!--   workflow() |>  -->
+<!--   add_model(nb_spec) |>  -->
+<!--   add_formula(pres ~ .) -->
 
-nb_fit_rs <- 
-  nb_wf |> 
-  fit_resamples(folds)
+<!-- nb_fit_rs <-  -->
+<!--   nb_wf |>  -->
+<!--   fit_resamples(folds) -->
 
-nb_fit_rs |> 
-  unnest(c(.metrics))
+<!-- nb_fit_rs |>  -->
+<!--   unnest(c(.metrics)) -->
 
-nb_testing_pred <- 
-  predict(nb_fit, fric_test) |> 
-  bind_cols(predict(nb_fit, fric_test, type = "prob")) %>% 
-  bind_cols(fric_test %>% dplyr::select(pres))
+<!-- nb_testing_pred <-  -->
+<!--   predict(nb_fit, fric_test) |>  -->
+<!--   bind_cols(predict(nb_fit, fric_test, type = "prob")) %>%  -->
+<!--   bind_cols(fric_test %>% dplyr::select(pres)) -->
 
-nb_testing_pred |>                    # test set predictions
-  #mutate(across(everything(),as.numeric)) |> 
-  roc_auc(truth = pres, .pred_0)
+<!-- nb_testing_pred |>                    # test set predictions -->
+<!--   #mutate(across(everything(),as.numeric)) |>  -->
+<!--   roc_auc(truth = pres, .pred_0) -->
 
-nb_testing_pred %>%                   # test set predictions
-  accuracy(truth = pres, .pred_class)
-```
-
-
+<!-- nb_testing_pred %>%                   # test set predictions -->
+<!--   accuracy(truth = pres, .pred_class) -->
+<!-- ``` -->
