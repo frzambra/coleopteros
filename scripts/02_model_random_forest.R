@@ -7,82 +7,30 @@ library(terra)
 library(rnaturalearth)
 
 ## leer los datos
-data <-  readxl::read_xlsx('data/raw/Frickius_iNaturalist_BahiaExploradores.xlsx',sheet=1) |> 
-  st_as_sf(coords =c('longitude','latitude'),crs=4326) 
+data <-  read_csv('data/processed/Datos-consolidados_Fvariolosus_20241013.csv') |> 
+  select(1:7) |> 
+  st_as_sf(coords =c('decimalLongitude','decimalLatitude'),crs=4326) 
 
-## agregar coordenadas
 data <- data |> cbind(lon=st_coordinates(data)[,1])
 
-#extensión de Chile
-chl <- ne_countries(country = 'Chile',scale = 'medium',returnclass = 'sf')
+
+# cargar predictores
+preds <- rast('data/raw/rasters/predictores.tif')
 
 #pseudo ausencia de la especie
-sa <- st_as_sfc(st_bbox(data)) |> st_sample(100) 
+set.seed(876)
+sa <- st_as_sfc(st_bbox(data)) |> st_sample(164) 
 
 # extensión espacial que se considerará para el modelo
-bb <- st_bbox(c(xmin=-77,ymin=-56,xmax=-63,ymax=-37))
+bb <- st_bbox(preds)
 
 #se agregan los puntos de seudo-ausencia de la especie
 data4model <- c(data$geometry,sa) |> st_as_sf()
 
 # 1= presencia de la especie, 0 = seudo-ausencia de la especie
 data4model$pres <- NA
-data4model$pres[1:49] <- 1
-data4model$pres[50:149] <- 0
-
-#predictores rasters humedad de suelo (sm), temperatura (temp) y precipitación (temp)
-dir_sm <- '/mnt/md0/raster_procesada/ERA5-Land_tiff/clima/volumetric_soil_water/monthly'
-dir_temp <-  '/mnt/md0/raster_procesada/ERA5-Land_tiff/clima/2m_mean_temperature/monthly'
-dir_pre <-  '/mnt/md0/raster_procesada/ERA5-Land_tiff/clima/total_precipitation/monthly'
-
-sm <- rast(dir_ls(dir_sm,regexp = '(2017|2018|2019|2020|2021|2022).*tif$'))
-temp <- rast(dir_ls(dir_temp,regexp = '(2017|2018|2019|2020|2021|2022).*tif$'))
-pre <- rast(dir_ls(dir_pre,regexp = '(2017|2018|2019|2020|2021|2022).*tif$'))
-
-#indices para calcular los promedios mensuales entre 2017-2022
-ind <- rep(1:12,6)
-
-#predictores agregados mensuales
-sm_z <- crop(sm,bb)
-csm_z <- tapp(sm_z,ind,sum)
-names(csm_z) <- paste0('HS_',month.abb)
-
-pre_z <- crop(pre,bb)*1000
-pre_z <- tapp(pre_z,ind,sum)
-names(pre_z) <- paste0('Pre_',month.abb)
-  
-temp_z <- crop(temp,bb)-273.15
-temp_z <- tapp(temp_z,ind,mean)
-names(temp_z) <- paste0('Temp_',month.abb)
-
-#NDVI índice de vegetación
-dir_ndvi <- '/mnt/md0/raster_procesada/MODIS/NDVI.MOD13A3.061'
-files_ndvi <- dir_ls(dir_ndvi,regexp = 'tif$')
-ind <- sapply(1:12,\(i) seq(i,284,12))
-res <- lapply(ind,\(i){
-  rast(files_ndvi[i]) |> app(mean,na.rm=TRUE)
-})
-
-ndvi_mes <- rast(res)
-ndvi_mes_r <- project(ndvi_mes,temp_z)
-ndvi_mes_r <- crop(ndvi_mes_r,bb)
-names(ndvi_mes_r) <- paste0('ndvi_',month.abb)
-
-#resampleo para que los predictores tengan la misma resolución espacial
-sm_z <-  resample(sm_z,ndvi_mes_r[[1]])
-temp_z <- resample(temp_z,ndvi_mes_r[[1]])
-pre_z <- resample(pre_z,ndvi_mes_r[[1]])
-
-#elevación
-library(geodata)
-#obtener elevación a 30" de resolución espacial
-dem <- elevation_30s('chile', path=tempdir())
-dem <- crop(dem,bb)
-dem <- resample(dem,ndvi_mes_r[[1]])
-names(dem) <- 'dem'
-
-#unir todos los predictores
-preds <- c(ndvi_mes_r,pre_z,temp_z,dem)
+data4model$pres[1:164] <- 1
+data4model$pres[165:328] <- 0
 
 data4model <- cbind(data4model,extract(preds,data4model))
 

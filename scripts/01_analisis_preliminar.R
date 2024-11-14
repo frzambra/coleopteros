@@ -4,28 +4,16 @@ library(tmap)
 library(fs)
 library(terra)
 
-data <-  readxl::read_xlsx('data/raw/Frickius_iNaturalist_BahiaExploradores.xlsx',sheet=2) |> 
-  st_as_sf(coords =c('Lon','Lat'),crs=4326) 
+data <-  read_csv('data/processed/Datos-consolidados_Fvariolosus_20241013.csv') |> 
+  select(1:7) |> 
+  st_as_sf(coords =c('decimalLongitude','decimalLatitude'),crs=4326) 
 
 data <- data |> cbind(lon=st_coordinates(data)[,1])
 
-dir_sm <- '/mnt/md0/raster_procesada/ERA5-Land_tiff/clima/volumetric_soil_water/monthly'
-dir_temp <-  '/mnt/md0/raster_procesada/ERA5-Land_tiff/clima/2m_mean_temperature/monthly'
-dir_pre <-  '/mnt/md0/raster_procesada/ERA5-Land_tiff/clima/total_precipitation/monthly'
+# cargar predictores
 
-sm <- rast(dir_ls(dir_sm,regexp = '(2017|2018|2019|2020|2021|2022).*tif$'))
-temp <- rast(dir_ls(dir_temp,regexp = '(2017|2018|2019|2020|2021|2022).*tif$'))
-pre <- rast(dir_ls(dir_pre,regexp = '(2017|2018|2019|2020|2021|2022).*tif$'))
+preds <- rast('data/raw/rasters/predictores.tif')
 
-# crear sumatoria humedad de suelo
-zone <- st_bbox(data) |> st_as_sfc() |> st_as_sf() |> st_buffer(10000)
-
-ind <- lapply(1:6,\(x) rep(x,12)) |> unlist()
-
-sm_z <- crop(sm,zone)
-csm_z <- tapp(sm_z,ind,sum)
-resam <- sm_z
-csm_z_res <- resample(csm_z,disagg(sm_z,20))
 
 #mapa de humedad acumulada anual con la ubicación de los puntos
 
