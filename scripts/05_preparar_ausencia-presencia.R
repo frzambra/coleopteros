@@ -13,6 +13,7 @@ data_sf <- data |>
 set.seed(864)
 data_full <- sample_pseudoabs(data_sf,area_estudio_raster,
                                 n=nrow(data_sf)*3,method = c('dist_min',500))
+write_rds(data_full,'data/processed/datos_ausencia-presencia.rds')
 
 ggplot() +
   geom_spatraster(data = area_estudio_raster,

@@ -63,6 +63,7 @@ frick_ensemble |> collect_metrics()
 
 explainer_frick_ensemble <- explain_tidysdm(frick_ensemble)
 
+# Explicación del modelo
 library(DALEX)
 
 vip_ensemble <- model_parts(explainer = explainer_frick_ensemble)
@@ -70,6 +71,9 @@ vip_ensemble <- model_parts(explainer = explainer_frick_ensemble)
 plot <- plot(vip_ensemble)
 ggsave(plot= plot,'output/figs/feature_importance_ensamble.png',
        bg = 'white',scale=2)
+
+model_profile(explainer_frick_ensemble,N=500,variable = "lsm_p_ncore") |> 
+  plot()
 
 prediction <- predict_raster(frick_ensemble,preds)
 plot(prediction)
