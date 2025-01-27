@@ -85,13 +85,13 @@ preds_tbl |>
   filter(if_all(everything(),\(x) !is.na(x))) |> 
   pull(rowid) -> rid
 
-preds_fric_rf <- predict(rf_fit,preds_tbl[rid,])
+preds_fric_rf <- predict(rf_fit,preds_tbl[rid,],type = 'prob')
 preds_fric_nb <- predict(nb_fit,preds_tbl[rid,])
 
 preds_final_rf <- tibble(preds = rep(NA,nrow(preds_tbl)))
 preds_final_nb <- tibble(preds = rep(NA,nrow(preds_tbl)))
 
-preds_final_rf[rid,] <- preds_fric_rf$.pred_class
+preds_final_rf[rid,] <- preds_fric_rf$.pred_0
 preds_final_nb[rid,] <- preds_fric_nb$.pred_class
 
 res_rf <- preds[[1]]
