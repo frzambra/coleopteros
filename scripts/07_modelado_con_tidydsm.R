@@ -1,15 +1,16 @@
 library(terra)
 library(tidyverse)
+library(tidysdm)
 
 # 1.- Cargar datos ----
 ## predictores raster
-preds <- rast('/media/francisco/data_procesada/papers/frickius_SDM/todos_los_predictores.tif')
+preds <- rast('/mnt/data_procesada/papers/frickius_SDM/todos_los_predictores.tif')
 data_preaus <- read_rds('data/processed/datos_ausencia-presencia.rds')
 
 ## datos de presencia-ausencia
 
 data_model <- data_preaus |> 
-  bind_cols(extract(preds,data_preaus)) |> 
+  bind_cols(terra::extract(preds,data_preaus)) |> 
   select(-ID) |> 
   drop_na()
 
@@ -75,13 +76,26 @@ ggsave(plot= plot,'output/figs/feature_importance_ensamble.png',
 model_profile(explainer_frick_ensemble,N=500,variable = "lsm_p_ncore") |> 
   plot()
 
+#predecir en los predictores con los datos climaticos actuales
 prediction <- predict_raster(frick_ensemble,preds)
-plot(prediction)
 
-map <- tm_shape(prediction) + 
+#predecir considerando las proyecciones 2061-2080
+preds_proj <- rast('/mnt/data_procesada/papers/frickius_SDM/todos_los_predictores_proyecciones.tif')
+
+names(preds_proj)[4:22] <- paste0('bio_',1:19)
+prediction_proj <- predict_raster(frick_ensemble,preds_proj)
+
+preds_res <- c(prediction,prediction_proj,prediction-prediction_proj)
+names(preds_res) <- c('Actual','Proy. 2061-2080','Diferencia')
+
+library(tmap)
+map <- tm_shape(preds_res) + 
   tm_raster(col.scale = tm_scale_continuous(values = "brewer.rd_yl_gn",
                                             midpoint = NA),
             col.legend = tm_legend(
               title = 'Probabilidad'
-            ))
+            )) +
+  tm_facets(nrow=1,orientation = 'horizontal',fill.free = TRUE)
+
+tmap_mode('view')
 tmap_save(map,'output/html/mapa_sdm_frickius.html')
