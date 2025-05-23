@@ -47,7 +47,7 @@ autoplot(frick_cv)
 
 set.seed(1234567)
 frick_models <-
-  frick_models %>%
+  frick_models |> 
   workflow_map("tune_grid",
                resamples = frick_cv, grid = 3,
                metrics = sdm_metric_set(), verbose = TRUE
@@ -57,6 +57,10 @@ autoplot(frick_models)
 
 frick_ensemble <- simple_ensemble() |> 
   add_member(frick_models,metric = 'boyce_cont')
+
+#Guardar modelo en el disco
+#
+write_rds(frick_ensemble,'data/processed/modelo_ensamblado_frickius.rds')
 
 autoplot(frick_ensemble)
 
