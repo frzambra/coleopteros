@@ -1,6 +1,8 @@
 library(terra)
 library(sf)
 library(tidyverse)
+library(geodata)
+library(fs)
 
 # 1.- Cargar area de estudio ----
 aestudio <- read_rds('data/processed/area_estudio.rds')
@@ -29,7 +31,7 @@ names(vars_dem) <- c('dem','slope','aspect')
                       
 # 4. Variables de paisaje ----
 
-lcpers <- rast('/media/francisco/data_procesada/papers/frickius_SDM/IGBP80_reclassified.tif')
+lcpers <- rast('/mnt/data_procesada/papers/frickius_SDM/IGBP80_reclassified.tif')
 
 lcpers[is.na(lcpers)] <- 11
 
@@ -44,9 +46,68 @@ my_metric_r_all = spatialize_lsm(lcpers, level = "patch",
 
 preds_lndsc_metrics <- my_metric_r_all$layer_1 |> rast()
 writeRaster(preds_lndsc_metrics,
-            '/media/francisco/data_procesada/papers/frickius_SDM/metricas_ldscp_lc_pers_2001-2023.tif',overwrite  =TRUE)
+            '/mnt/data_procesada/papers/frickius_SDM/metricas_ldscp_lc_pers_2001-2023.tif',overwrite  =TRUE)
 
-# 5. Juntar todos los predictores en un raster stack
+# preds_lndsc_metrics <- rast('/mnt/data_procesada/papers/frickius_SDM/metricas_ldscp_lc_pers_2001-2023.tif')
+
+# 5. Variables de suelo ----
+
+#Arcilla
+clay <- terra::rast(dir_ls('/mnt/data_procesada/data/rasters/Procesados/SoilGRID250m/clay_chl/')[c(1,3,5)])
+clay <- mean(clay,na.rm = TRUE)
+clay <- project(clay,bio)
+clay <- resample(clay,bio)
+
+#Arena
+sand <- terra::rast(dir_ls('/mnt/data_procesada/data/rasters/Procesados/SoilGRID250m/sand_chl/')[c(1,3,5)])
+sand <- mean(sand,na.rm = TRUE)
+sand <- project(sand,bio)
+sand <- resample(sand,bio)
+
+#Limo
+
+silt <- terra::rast(dir_ls('/mnt/data_procesada/data/rasters/Procesados/SoilGRID250m/silt_chl/')[c(1,3,5)])
+silt <- mean(silt,na.rm = TRUE)
+silt <- project(silt,bio)
+silt <- resample(silt,bio)
+
+# AWC
+# 
+awc <- terra::rast(dir_ls('/mnt/data_procesada/data/rasters/Procesados/SoilGRID250m/awc_chl/')[c(1,3)])
+awc <- mean(awc,na.rm = TRUE)
+awc <- resample(awc,bio)
+
+suelo <- c(clay,sand,silt,awc)
+names(suelo) <- c('clay','sand','silt','awc')
+
+writeRaster(suelo,'/mnt/data_procesada/papers/frickius_SDM/suelo.tif')
+
+# suelo <- rast('/mnt/data_procesada/papers/frickius_SDM/suelo.tif')
+
+# 5. NDVI ----
+
+files <- dir_ls('/mnt/data_procesada/data/rasters/Procesados/MODIS/NDVI.MOD13A3.061/')
+
+ind <- map(1:12,\(i) seq(i,length(files),12))
+
+ndvi_met <- seq_along(ind) |> 
+  map(\(i){
+    r <- rast(files[ind[[i]]])
+    r_mean <- mean(r,na.rm  =TRUE)
+    r_cov <- app(r,\(x) sd(x,na.rm  =TRUE) / mean(x,na.rm = TRUE),cores = 11)
+    cli::cli_alert_success(month.name[i])
+    c(r_mean,r_cov)
+    
+  })
+
+ndvi_met <- rast(ndvi_met)
+ndvi_met_s <- terra::sprc(ndvi_met) 
+names(ndvi_met_s) <- sapply(month.abb,\(x) paste0(x,c('_mean','_cov'))) |> as.character()
+ndvi_met_s <- project(ndvi_met_s,bio)
+writeRaster(ndvi_met_s,'/mnt/data_procesada/papers/frickius_SDM/ndvi_mettricas.tif',overwrite = TRUE)
+
+
+# 6. Juntar todos los predictores en un raster stack ----
 
 lcpers <- crop(lcpers,preds_lndsc_metrics)
 lcpers_rs <- project(lcpers,crs(bio),method = 'near')
@@ -56,9 +117,9 @@ preds_lndsc_metrics_rs <- project(preds_lndsc_metrics,crs(bio),method = 'near')
 preds_lndsc_metrics_resam <- resample(preds_lndsc_metrics_rs,
                                       bio)
 
-preds_all <- c(vars_dem,bio,lcpers_resam,preds_lndsc_metrics_resam)
+preds_all <- c(vars_dem,bio,lcpers_resam,preds_lndsc_metrics_resam,suelo,ndvi_met_s)
 names_new <- str_remove(names(preds_all),'wc2.1_30s_')
 names_new[23] <- 'landc_pers'
 names(preds_all) <- names_new           
 
-writeRaster(preds_all,'/media/francisco/data_procesada/papers/frickius_SDM/todos_los_predictores.tif',overwrite = TRUE)
+writeRaster(preds_all,'/mnt/data_procesada/papers/frickius_SDM/todos_los_predictores.tif',overwrite = TRUE)
