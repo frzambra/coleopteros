@@ -104,6 +104,7 @@ ndvi_met <- rast(ndvi_met)
 ndvi_met_s <- terra::sprc(ndvi_met) 
 names(ndvi_met_s) <- sapply(month.abb,\(x) paste0(x,c('_mean','_cov'))) |> as.character()
 ndvi_met_s <- project(ndvi_met_s,bio)
+ndvi_met_s <- ndvi_met_s*1e-6
 writeRaster(ndvi_met_s,'/mnt/data_procesada/papers/frickius_SDM/ndvi_mettricas.tif',overwrite = TRUE)
 
 
