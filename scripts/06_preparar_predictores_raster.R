@@ -103,6 +103,7 @@ ndvi_met <- rast(l)
 names(ndvi_met) <- sapply(month.abb,\(x) paste0(x,c('_mean','_cov'))) |> as.character()
 ndvi_met <- project(ndvi_met,bio)
 writeRaster(ndvi_met,'~/Descargas/frickius_SDM/ndvi_mettricas.tif',overwrite = TRUE)
+# ndvi_met <- rast('~/Descargas/frickius_SDM/ndvi_mettricas.tif')
 
 # 6. Juntar todos los predictores en un raster stack ----
 
@@ -114,7 +115,7 @@ preds_lndsc_metrics_rs <- project(preds_lndsc_metrics,crs(bio),method = 'near')
 preds_lndsc_metrics_resam <- resample(preds_lndsc_metrics_rs,
                                       bio)
 
-preds_all <- c(vars_dem,bio,lcpers_resam,preds_lndsc_metrics_resam,suelo,ndvi_met_s)
+preds_all <- c(vars_dem,bio,lcpers_resam,preds_lndsc_metrics_resam,suelo,ndvi_met)
 names_new <- str_remove(names(preds_all),'wc2.1_30s_')
 names_new[23] <- 'landc_pers'
 names(preds_all) <- names_new           
