@@ -61,6 +61,7 @@ frick_ensemble <- simple_ensemble() |>
 #Guardar modelo en el disco
 #
 write_rds(frick_ensemble,'data/processed/modelo_ensamblado_frickius.rds')
+#frick_ensemble <- read_rds('data/processed/modelo_ensamblado_frickius.rds')
 
 autoplot(frick_ensemble)
 
@@ -82,15 +83,18 @@ model_profile(explainer_frick_ensemble,N=500,variable = "lsm_p_ncore") |>
 
 #predecir en los predictores con los datos climaticos actuales
 prediction <- predict_raster(frick_ensemble,preds)
+prediction <- trim(prediction)
 
 #predecir considerando las proyecciones 2061-2080
 preds_proj <- rast('/mnt/data_procesada/papers/frickius_SDM/todos_los_predictores_proyecciones.tif')
+preds_proj[is.infinite(preds_proj)] <- NA
 
 names(preds_proj)[4:22] <- paste0('bio_',1:19)
 prediction_proj <- predict_raster(frick_ensemble,preds_proj)
 
-preds_res <- c(prediction,prediction_proj,prediction-prediction_proj)
+preds_res <- c(prediction,prediction_proj)
 names(preds_res) <- c('Actual','Proy. 2061-2080','Diferencia')
+writeRaster(preds_res,'data/processed/raster_predicciones_1970-2000_2061-2080.tif')
 
 library(tmap)
 map <- tm_shape(preds_res) + 
