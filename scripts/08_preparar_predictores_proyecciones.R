@@ -30,7 +30,7 @@ bio_spp585 <- crop(bio_spp585,aestudio)
 
 preds <- rast('/mnt/data_procesada/papers/frickius_SDM/todos_los_predictores.tif')
 
-subset(preds,4:22) <- bio_spp585
+preds_proj <- c(subset(preds,1:3),bio_spp585,subset(preds,23:63))
 
-preds_proj <- c(subset(preds,1:3),bio_spp585,subset(preds,23:35))
-writeRaster(preds_proj,'/mnt/data_procesada/papers/frickius_SDM/todos_los_predictores_proyecciones.tif')
+names(preds_proj)[4:22] <- paste0('bio_',1:19)
+writeRaster(preds_proj,'/mnt/data_procesada/papers/frickius_SDM/todos_los_predictores_proyecciones.tif',overwrite = TRUE)
