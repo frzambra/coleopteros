@@ -86,27 +86,23 @@ writeRaster(suelo,'/mnt/data_procesada/papers/frickius_SDM/suelo.tif')
 
 # 5. NDVI ----
 
-files <- dir_ls('/mnt/data_procesada/data/rasters/Procesados/MODIS/NDVI.MOD13A3.061/')
+files <- dir_ls('/home/francisco/Descargas/NDVI.MOD13A3.061')
 
 ind <- map(1:12,\(i) seq(i,length(files),12))
 
-ndvi_met <- seq_along(ind) |> 
-  map(\(i){
-    r <- rast(files[ind[[i]]])
-    r_mean <- mean(r,na.rm  =TRUE)
-    r_cov <- app(r,\(x) sd(x,na.rm  =TRUE) / mean(x,na.rm = TRUE),cores = 11)
-    cli::cli_alert_success(month.name[i])
-    c(r_mean,r_cov)
-    
-  })
+l <- list()
+for( i in seq_along(ind)){
+  r <- rast(files[ind[[i]]])
+  r_mean <- mean(r,na.rm  =TRUE)
+  r_cov <- app(r,\(x) sd(x,na.rm  =TRUE) / mean(x,na.rm = TRUE),cores = 80)
+  cli::cli_alert_success(month.name[i])
+  l[[i]] <- c(r_mean,r_cov)
+  }
 
-ndvi_met <- rast(ndvi_met)
-ndvi_met_s <- terra::sprc(ndvi_met) 
-names(ndvi_met_s) <- sapply(month.abb,\(x) paste0(x,c('_mean','_cov'))) |> as.character()
-ndvi_met_s <- project(ndvi_met_s,bio)
-ndvi_met_s <- ndvi_met_s*1e-6
-writeRaster(ndvi_met_s,'/mnt/data_procesada/papers/frickius_SDM/ndvi_mettricas.tif',overwrite = TRUE)
-
+ndvi_met <- rast(l)
+names(ndvi_met) <- sapply(month.abb,\(x) paste0(x,c('_mean','_cov'))) |> as.character()
+ndvi_met <- project(ndvi_met,bio)
+writeRaster(ndvi_met,'~/Descargas/frickius_SDM/ndvi_mettricas.tif',overwrite = TRUE)
 
 # 6. Juntar todos los predictores en un raster stack ----
 

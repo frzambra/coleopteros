@@ -70,7 +70,7 @@ explainer_frick_ensemble <- explain_tidysdm(frick_ensemble)
 
 # Explicación del modelo
 library(DALEX)
-
+set.seed(1976)
 vip_ensemble <- model_parts(explainer = explainer_frick_ensemble)
 
 plot <- plot(vip_ensemble)
