@@ -63,7 +63,8 @@ frick_ensemble <- simple_ensemble() |>
 write_rds(frick_ensemble,'data/processed/modelo_ensamblado_frickius.rds')
 #frick_ensemble <- read_rds('data/processed/modelo_ensamblado_frickius.rds')
 
-autoplot(frick_ensemble)
+autoplot(frick_ensemble) +
+  theme_bw()
 
 frick_ensemble |> collect_metrics()
 
@@ -74,11 +75,15 @@ library(DALEX)
 set.seed(1976)
 vip_ensemble <- model_parts(explainer = explainer_frick_ensemble)
 
-plot <- plot(vip_ensemble)
-ggsave(plot= plot,'output/figs/feature_importance_ensamble.png',
-       bg = 'white',scale=2)
+vip_ensemble$label <- ''
 
-model_profile(explainer_frick_ensemble,N=500,variable = "lsm_p_ncore") |> 
+plot <- plot(vip_ensemble,max_vars = 15) +
+  labs(title = NULL,subtitle = NULL,caption = NULL,tag = NULL) 
+
+ggsave(plot= plot,'output/figs/feature_importance_ensamble.png',
+       bg = 'white',scale=1.5) 
+
+model_profile(explainer_frick_ensemble,N=500,variable = "clay") |> 
   plot()
 
 #predecir en los predictores con los datos climaticos actuales
@@ -97,15 +102,3 @@ preds_res <- c(prediction,prediction_proj,prediction-prediction_proj)
 names(preds_res) <- c('Actual','Proy. 2061-2080','Diferencia')
 writeRaster(preds_res,'data/processed/raster_predicciones_1970-2000_2061-2080.tif',overwrite = TRUE)
 
-library(tmap)
-map <- tm_shape(subset(preds_res,1:2)) + 
-  tm_raster(col.scale = tm_scale_continuous(values = "brewer.rd_yl_gn",
-                                            midpoint = NA),
-            col.legend = tm_legend(
-              title = 'Probability',
-              position = 'left'
-            )) +
-  tm_facets(nrow=1,orientation = 'horizontal') 
-
-tmap_mode('view')
-tmap_save(map,'output/html/mapa_sdm_frickius.html')
