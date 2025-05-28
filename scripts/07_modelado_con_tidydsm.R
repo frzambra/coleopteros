@@ -91,19 +91,21 @@ preds_proj[is.infinite(preds_proj)] <- NA
 
 names(preds_proj)[4:22] <- paste0('bio_',1:19)
 prediction_proj <- predict_raster(frick_ensemble,preds_proj)
+prediction_proj <- crop(prediction_proj,ext(prediction))
 
-preds_res <- c(prediction,prediction_proj)
+preds_res <- c(prediction,prediction_proj,prediction-prediction_proj)
 names(preds_res) <- c('Actual','Proy. 2061-2080','Diferencia')
-writeRaster(preds_res,'data/processed/raster_predicciones_1970-2000_2061-2080.tif')
+writeRaster(preds_res,'data/processed/raster_predicciones_1970-2000_2061-2080.tif',overwrite = TRUE)
 
 library(tmap)
-map <- tm_shape(preds_res) + 
+map <- tm_shape(subset(preds_res,1:2)) + 
   tm_raster(col.scale = tm_scale_continuous(values = "brewer.rd_yl_gn",
                                             midpoint = NA),
             col.legend = tm_legend(
-              title = 'Probabilidad'
+              title = 'Probability',
+              position = 'left'
             )) +
-  tm_facets(nrow=1,orientation = 'horizontal',fill.free = TRUE)
+  tm_facets(nrow=1,orientation = 'horizontal') 
 
 tmap_mode('view')
 tmap_save(map,'output/html/mapa_sdm_frickius.html')
