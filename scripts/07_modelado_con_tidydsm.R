@@ -14,10 +14,30 @@ data_model <- data_preaus |>
   select(-ID) |> 
   drop_na()
 
+summary(data_model)
+
+# Comparación de histogramas para variables de 
+plot_comp <- data_model |> 
+  plot_pres_vs_bg(class) 
+ggsave('output/figs/histogramas_comparacion_pres_aus.png',
+       width=12,height =8,scale = 1.5)
+
+#Distancia entre las distribuciones de presencia y ausencia
+
+data_model |> dist_pres_vs_bg(class)
+
+# Identificar variables que no esten correlacionadas
+# 
+vars_uncor <- filter_collinear(data_model,
+                               cutoff = 0.7,
+                               method = "cor_caret")
+                               
+data_model_filt <- data_model |> 
+  select(all_of(c(vars_uncor,'class')))
 
 library(tidymodels)
 
-frick_rec <- recipe(data_model,class~.)
+frick_rec <- recipe(data_model_filt,class~.)
 
 data_model |> check_sdm_presence(class)
 
@@ -42,7 +62,7 @@ frick_models <-
   option_add(control = control_ensemble_grid())
 
 set.seed(100)
-frick_cv <- spatial_block_cv(data = data_model, v = 3, n = 5)
+frick_cv <- spatial_block_cv(data = data_model, v = 3, repeats = 5)
 autoplot(frick_cv)
 
 set.seed(1234567)
@@ -77,13 +97,15 @@ vip_ensemble <- model_parts(explainer = explainer_frick_ensemble)
 
 vip_ensemble$label <- ''
 
-plot <- plot(vip_ensemble,max_vars = 15) +
+plot <- plot(vip_ensemble,max_vars = 7) +
   labs(title = NULL,subtitle = NULL,caption = NULL,tag = NULL) 
 
-ggsave(plot= plot,'output/figs/feature_importance_ensamble.png',
+ggsave(plot= plot,'output/figs/feature_importance_ensamble_7_var.png',
        bg = 'white',scale=1.5) 
 
-model_profile(explainer_frick_ensemble,N=500,variable = "clay") |> 
+model_profile(explainer_frick_ensemble,N=500,
+              variable = c("bio_18","bio_11","bio_9",
+                           "dem","bio_4","silt")) |> 
   plot()
 
 #predecir en los predictores con los datos climaticos actuales
