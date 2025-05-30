@@ -109,6 +109,7 @@ model_profile(explainer_frick_ensemble,N=500,
   plot()
 
 #predecir en los predictores con los datos climaticos actuales
+preds[is.infinite(preds)] <- NA
 prediction <- predict_raster(frick_ensemble,preds)
 prediction <- trim(prediction)
 
